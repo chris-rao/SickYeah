@@ -1,0 +1,18 @@
+services:
+  backend:
+    container_name: sickyeah-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      TZ: Asia/Shanghai
+      DATABASE_URL: file:./dev.db
+    volumes:
+      - ./prisma/dev.db:/app/prisma/dev.db
+      - ./uploads:/app/uploads
+    restart: unless-stopped
