@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String       @id @default(uuid())
+  username  String       @unique
+  password  String
+  avatar    String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  
+  restaurants Restaurant[]
+  reviews     Review[]
+}
+
+model Restaurant {
+  id                 String   @id @default(uuid())
+  name               String
+  address            String
+  recommendedDishes  String
+  description        String
+  image              String?
+  status             String   // 'to-eat' | 'eaten'
+  rating             String?  // 'good' | 'bad' | null
+  userId             String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  user    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews Review[]
+}
+
+model Review {
+  id           String        @id @default(uuid())
+  restaurantId String
+  userId       String
+  rating       String        // 'good' | 'bad'
+  comment      String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  restaurant Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  photos     ReviewPhoto[]
+}
+
+model ReviewPhoto {
+  id        String   @id @default(uuid())
+  reviewId  String
+  photoUrl  String
+  createdAt DateTime @default(now())
+  
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+}
