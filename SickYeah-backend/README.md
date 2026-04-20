@@ -62,7 +62,7 @@ cp .env.example .env
 ```env
 DATABASE_URL="file:./dev.db"                          # 数据库路径
 JWT_SECRET="your-super-secret-jwt-key-change-this"    # ⚠️ 必须修改！
-PORT=4000                                             # 服务器端口
+PORT=8080                                             # 服务器端口
 NODE_ENV=development                                  # 运行环境
 CORS_ORIGIN="http://localhost:3000"                   # 前端地址
 ```
@@ -84,7 +84,7 @@ npm run prisma:generate
 npm run dev
 ```
 
-服务器将在 `http://localhost:4000` 启动。
+服务器将在 `http://localhost:8080` 启动。
 
 ### 5. 测试 API
 
@@ -301,7 +301,7 @@ npm run prisma:studio
 前端需要：
 
 1. **安装 axios**（或使用 fetch）
-2. **配置 API 基础 URL**: `http://localhost:4000/api`
+2. **配置 API 基础 URL**: `http://localhost:8080/api`
 3. **处理 JWT Token**：
    - 登录后保存 token 到 localStorage
    - 每个请求在 Header 中携带：`Authorization: Bearer {token}`
@@ -313,7 +313,7 @@ npm run prisma:studio
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:4000/api',
+  baseURL: 'http://localhost:8080/api',
 });
 
 // 请求拦截器 - 自动添加 token

@@ -149,7 +149,7 @@ cd backend
 npm run dev
 ```
 
-服务器将在 `http://localhost:4000` 启动。
+服务器将在 `http://localhost:8080` 启动。
 
 ### 测试 API
 
@@ -227,5 +227,5 @@ npm run prisma:studio
 ---
 
 **项目状态**: ✅ 已完成并测试通过
-**后端服务**: 🟢 正在运行 (http://localhost:4000)
+**后端服务**: 🟢 正在运行 (http://localhost:8080)
 **准备就绪**: ✅ 可以开始前端集成

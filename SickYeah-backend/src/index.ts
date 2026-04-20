@@ -9,7 +9,7 @@ import reviewRoutes from './routes/review.routes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 
 // 中间件
 app.use(cors({

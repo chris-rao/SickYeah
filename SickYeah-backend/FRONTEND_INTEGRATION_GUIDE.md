@@ -95,13 +95,13 @@ const submitReview = async () => {
 创建 `.env` 文件：
 
 ```env
-VITE_API_BASE_URL=http://localhost:4000/api
+VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
 在 API 文件中使用：
 
 ```typescript
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 ```
 
 ## 6. 启动项目
@@ -113,7 +113,7 @@ cd backend
 npm run dev
 ```
 
-后端运行在 `http://localhost:4000`
+后端运行在 `http://localhost:8080`
 
 ### 启动前端
 
@@ -143,9 +143,9 @@ npm run dev
 
 ## API 接口地址
 
-- 后端 API: `http://localhost:4000/api`
-- 健康检查: `http://localhost:4000/health`
-- 上传的图片: `http://localhost:4000/uploads/filename.jpg`
+- 后端 API: `http://localhost:8080/api`
+- 健康检查: `http://localhost:8080/health`
+- 上传的图片: `http://localhost:8080/uploads/filename.jpg`
 
 ## 常见问题
 
