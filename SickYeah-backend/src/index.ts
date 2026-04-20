@@ -12,8 +12,21 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 // 中间件
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['http://localhost:3000'];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // 允许无 origin 的请求（如 Postman、服务器端请求）
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('不允许的跨域请求来源'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
