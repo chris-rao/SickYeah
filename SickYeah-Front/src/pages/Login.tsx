@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Input, Card, BackgroundPatterns } from '@/components/ui';
+import { Button, Input, Card } from '@/components/ui';
 import { FoodIcons } from '@/components/icons';
 import { motion } from 'motion/react';
 import { useStore } from '@/store/useStore';
@@ -63,8 +63,6 @@ export const Login = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-food-bg relative overflow-hidden">
-      <BackgroundPatterns />
-      
       <motion.div 
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

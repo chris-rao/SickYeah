@@ -4,16 +4,14 @@ import { Card, Button, Toast, cn, BackgroundPatterns } from '@/components/ui';
 import { FoodIcons } from '@/components/icons';
 import { restaurantAPI, reviewAPI } from '@/api';
 import { motion, AnimatePresence } from 'motion/react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/pagination';
 
-const mockImages = [
-  'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80',
-  'https://images.unsplash.com/photo-1512152272829-408c2ce692d5?auto=format&fit=crop&w=800&q=80',
-];
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
+
+const getImageUrl = (path?: string) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `${API_BASE}${path}`;
+};
 
 type ReviewStep = 'rating' | 'comment' | 'photo' | null;
 
@@ -70,7 +68,7 @@ export const RestaurantDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-food-bg flex flex-col items-center justify-center relative overflow-hidden">
-        <BackgroundPatterns />
+        <BackgroundPatterns variant="detail" />
         <FoodIcons.Burger className="w-16 h-16 text-food-ink/40 mb-4 animate-pulse" />
         <p className="text-food-ink/60 font-bold">加载中...</p>
       </div>
@@ -81,7 +79,7 @@ export const RestaurantDetail = () => {
   if (!restaurant || error) {
     return (
       <div className="min-h-screen bg-food-bg flex flex-col items-center justify-center relative overflow-hidden">
-        <BackgroundPatterns />
+        <BackgroundPatterns variant="detail" />
         <FoodIcons.Bad className="w-16 h-16 text-food-ink/40 mb-4" />
         <p className="text-food-ink/60 font-bold mb-4">找不到这家店啦！</p>
         <Button onClick={() => navigate(-1)}>返回上一页</Button>
@@ -89,7 +87,7 @@ export const RestaurantDetail = () => {
     );
   }
 
-  const images = restaurant.image ? [restaurant.image, ...mockImages] : mockImages;
+  const imageUrl = getImageUrl(restaurant.image);
 
   const handleEatenClick = () => {
     setReviewStep('rating');
@@ -171,10 +169,10 @@ export const RestaurantDetail = () => {
 
   return (
     <div className="min-h-screen bg-food-bg flex flex-col relative overflow-hidden">
-      <BackgroundPatterns />
+      <BackgroundPatterns variant="detail" />
 
       {/* Header */}
-      <header className="p-6 flex items-center gap-4 bg-food-cheese sticky top-0 z-20 food-border border-x-0 border-t-0 shadow-lg">
+      <header className="p-4 flex items-center gap-4 bg-food-cheese sticky top-0 z-20 food-border border-x-0 border-t-0 shadow-lg">
         <Button variant="secondary" onClick={() => navigate(-1)} className="p-2 food-shadow-sm bg-white">
           <FoodIcons.Back className="w-6 h-6" />
         </Button>
@@ -186,43 +184,26 @@ export const RestaurantDetail = () => {
       <main className="flex-1 flex flex-col z-10 pb-32">
         {/* Carousel - 仅已食状态显示 */}
         {restaurant.status === 'eaten' && (
-          <div className="relative w-full aspect-square max-h-[60vh] bg-food-paper food-border border-x-0 border-t-0 overflow-hidden">
-            {images.length > 0 ? (
-              <Swiper
-                modules={[Pagination]}
-                pagination={{ 
-                  clickable: true,
-                  bulletClass: 'swiper-pagination-bullet !bg-white/80 !w-2.5 !h-2.5 !mx-1',
-                  bulletActiveClass: '!bg-food-cheese !w-6'
+          <div className="relative w-full aspect-square max-h-[38vh] bg-food-paper food-border border-x-0 border-t-0 overflow-hidden">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={restaurant.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
                 }}
-                className="w-full h-full"
-                spaceBetween={0}
-                slidesPerView={1}
-              >
-                {images.map((img, idx) => (
-                  <SwiperSlide key={idx}>
-                    <img
-                      src={img}
-                      alt={`${restaurant.name} photo ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
-                        if (fallback) fallback.style.display = 'flex';
-                      }}
-                    />
-                    <div className="fallback-icon absolute inset-0 hidden items-center justify-center bg-food-cheese/10">
-                      <FoodIcons.Burger className="w-24 h-24 opacity-30" />
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-food-cheese/10">
-                <FoodIcons.Burger className="w-24 h-24 opacity-30" />
-              </div>
-            )}
+              />
+            ) : null}
+            <div className={cn(
+              "fallback-icon absolute inset-0 items-center justify-center bg-food-cheese/10",
+              imageUrl ? "hidden" : "flex"
+            )}>
+              <FoodIcons.Burger className="w-24 h-24 opacity-30" />
+            </div>
           </div>
         )}
 
@@ -257,7 +238,7 @@ export const RestaurantDetail = () => {
               <div className="bg-food-paper/30 p-4 rounded-2xl food-border border-none">
                 <div className="flex items-center gap-2 mb-2 text-food-ink/80 font-black">
                   <FoodIcons.Good className="w-5 h-5" />
-                  <h3>吃货说</h3>
+                  <h3>评价</h3>
                 </div>
                 <p className="text-food-ink/80 italic leading-relaxed">
                   “{restaurant.description}”
@@ -269,7 +250,7 @@ export const RestaurantDetail = () => {
             {restaurant.status === 'eaten' && (
               <div className="flex items-center justify-center gap-2 mt-4 p-3 bg-food-lettuce/10 text-food-lettuce rounded-full food-border font-black">
                 <FoodIcons.Done className="w-5 h-5" />
-                <span>已经打卡过啦！</span>
+                <span>已经check过啦！</span>
               </div>
             )}
           </Card>
@@ -283,7 +264,7 @@ export const RestaurantDetail = () => {
             onClick={handleEatenClick} 
             className="w-full py-4 text-xl shadow-2xl pointer-events-auto"
           >
-            我已吃完，去评价！
+            食饱啦，去评价！
           </Button>
         </div>
       )}
@@ -306,7 +287,7 @@ export const RestaurantDetail = () => {
               className="w-full"
             >
               <Card className="bg-white p-8 flex flex-col items-center gap-6 shadow-2xl">
-                <h3 className="text-2xl font-black text-food-ink">这顿吃得咋样？</h3>
+                <h3 className="text-2xl font-black text-food-ink">评价</h3>
                 <div className="flex w-full gap-4">
                   <button 
                     onClick={() => handleRateSelect('good')}
@@ -315,7 +296,7 @@ export const RestaurantDetail = () => {
                     <div className="w-16 h-16 rounded-full bg-food-lettuce text-white flex items-center justify-center food-shadow-sm group-hover:scale-110 transition-transform">
                       <FoodIcons.Good className="w-10 h-10" />
                     </div>
-                    <span className="font-black text-food-lettuce">好吃推荐</span>
+                    <span className="font-black text-food-lettuce">两条裤</span>
                   </button>
                   
                   <button 
@@ -325,11 +306,11 @@ export const RestaurantDetail = () => {
                     <div className="w-16 h-16 rounded-full bg-gray-400 text-white flex items-center justify-center food-shadow-sm group-hover:scale-110 transition-transform">
                       <FoodIcons.Bad className="w-10 h-10" />
                     </div>
-                    <span className="font-black text-gray-500">踩雷不来</span>
+                    <span className="font-black text-gray-500">把撚</span>
                   </button>
                 </div>
                 <Button variant="ghost" onClick={() => setReviewStep(null)} className="mt-2 text-food-ink/50">
-                  按错了，先不评价
+                  再谂下
                 </Button>
               </Card>
             </motion.div>
@@ -355,7 +336,7 @@ export const RestaurantDetail = () => {
               className="w-full"
             >
               <Card className="bg-white p-8 flex flex-col gap-6 shadow-2xl">
-                <h3 className="text-2xl font-black text-food-ink">说说你的感受吧</h3>
+                <h3 className="text-2xl font-black text-food-ink">写作文</h3>
                 <textarea
                   placeholder="分享你的用餐体验..."
                   rows={4}

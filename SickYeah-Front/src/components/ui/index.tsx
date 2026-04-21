@@ -7,18 +7,70 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const BackgroundPatterns = () => (
-  <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-[0.12]">
-    <div className="absolute top-[5%] left-[10%] rotate-12 scale-150"><FoodIcons.Burger className="w-12 h-12" /></div>
-    <div className="absolute top-[15%] right-[15%] -rotate-12 scale-125"><FoodIcons.Fries className="w-12 h-12" /></div>
-    <div className="absolute top-[40%] left-[5%] rotate-45 scale-110"><FoodIcons.Wing className="w-12 h-12" /></div>
-    <div className="absolute top-[60%] right-[10%] -rotate-45 scale-150"><FoodIcons.Soda className="w-12 h-12" /></div>
-    <div className="absolute bottom-[10%] left-[20%] rotate-12 scale-125"><FoodIcons.Pizza className="w-12 h-12" /></div>
-    <div className="absolute bottom-[20%] right-[20%] -rotate-12 scale-110"><FoodIcons.IceCream className="w-12 h-12" /></div>
-    <div className="absolute top-[30%] left-[40%] rotate-[-20deg] scale-150"><FoodIcons.Sandwich className="w-12 h-12" /></div>
-    <div className="absolute bottom-[40%] left-[45%] rotate-[30deg] scale-125"><FoodIcons.Coffee className="w-12 h-12" /></div>
-    <div className="absolute top-[70%] left-[30%] rotate-[-10deg] scale-110"><FoodIcons.Burger className="w-10 h-10 opacity-50" /></div>
-    <div className="absolute top-[10%] left-[60%] rotate-[15deg] scale-125"><FoodIcons.Fries className="w-10 h-10 opacity-50" /></div>
+type BackgroundVariant = 'home' | 'list' | 'detail' | 'report';
+
+const BACKGROUND_LAYOUTS: Record<BackgroundVariant, React.ReactNode> = {
+  home: (
+    <>
+      <div className="absolute top-[5%] left-[10%] rotate-12 scale-150"><FoodIcons.Burger className="w-12 h-12" /></div>
+      <div className="absolute top-[15%] right-[15%] -rotate-12 scale-125"><FoodIcons.Fries className="w-12 h-12" /></div>
+      <div className="absolute top-[40%] left-[5%] rotate-45 scale-110"><FoodIcons.Wing className="w-12 h-12" /></div>
+      <div className="absolute top-[60%] right-[10%] -rotate-45 scale-150"><FoodIcons.Soda className="w-12 h-12" /></div>
+      <div className="absolute bottom-[10%] left-[20%] rotate-12 scale-125"><FoodIcons.Pizza className="w-12 h-12" /></div>
+      <div className="absolute bottom-[20%] right-[20%] -rotate-12 scale-110"><FoodIcons.IceCream className="w-12 h-12" /></div>
+      <div className="absolute top-[30%] left-[40%] rotate-[-20deg] scale-150"><FoodIcons.Sandwich className="w-12 h-12" /></div>
+      <div className="absolute bottom-[40%] left-[45%] rotate-[30deg] scale-125"><FoodIcons.Coffee className="w-12 h-12" /></div>
+      <div className="absolute top-[70%] left-[30%] rotate-[-10deg] scale-110"><FoodIcons.Burger className="w-10 h-10 opacity-50" /></div>
+      <div className="absolute top-[10%] left-[60%] rotate-[15deg] scale-125"><FoodIcons.Fries className="w-10 h-10 opacity-50" /></div>
+    </>
+  ),
+  list: (
+    <>
+      <div className="absolute top-[8%] right-[10%] rotate-[25deg] scale-150"><FoodIcons.Pizza className="w-12 h-12" /></div>
+      <div className="absolute top-[20%] left-[8%] -rotate-[15deg] scale-125"><FoodIcons.Coffee className="w-12 h-12" /></div>
+      <div className="absolute top-[45%] right-[5%] rotate-[40deg] scale-110"><FoodIcons.Burger className="w-12 h-12" /></div>
+      <div className="absolute top-[55%] left-[12%] -rotate-[30deg] scale-150"><FoodIcons.IceCream className="w-12 h-12" /></div>
+      <div className="absolute bottom-[15%] right-[18%] rotate-[10deg] scale-125"><FoodIcons.Wing className="w-12 h-12" /></div>
+      <div className="absolute bottom-[25%] left-[5%] -rotate-[20deg] scale-110"><FoodIcons.Sandwich className="w-12 h-12" /></div>
+      <div className="absolute top-[35%] left-[42%] rotate-[35deg] scale-150"><FoodIcons.Soda className="w-12 h-12" /></div>
+      <div className="absolute bottom-[45%] right-[40%] -rotate-[25deg] scale-125"><FoodIcons.Fries className="w-12 h-12" /></div>
+      <div className="absolute top-[12%] left-[55%] rotate-[-35deg] scale-110"><FoodIcons.Pizza className="w-10 h-10 opacity-50" /></div>
+      <div className="absolute bottom-[8%] left-[35%] rotate-[20deg] scale-125"><FoodIcons.Coffee className="w-10 h-10 opacity-50" /></div>
+    </>
+  ),
+  detail: (
+    <>
+      <div className="absolute top-[6%] left-[15%] rotate-[-25deg] scale-150"><FoodIcons.Sandwich className="w-12 h-12" /></div>
+      <div className="absolute top-[18%] right-[8%] rotate-[20deg] scale-125"><FoodIcons.Soda className="w-12 h-12" /></div>
+      <div className="absolute top-[42%] left-[8%] -rotate-[40deg] scale-110"><FoodIcons.Pizza className="w-12 h-12" /></div>
+      <div className="absolute top-[62%] right-[12%] rotate-[15deg] scale-150"><FoodIcons.Coffee className="w-12 h-12" /></div>
+      <div className="absolute bottom-[12%] left-[18%] -rotate-[10deg] scale-125"><FoodIcons.Fries className="w-12 h-12" /></div>
+      <div className="absolute bottom-[22%] right-[15%] rotate-[35deg] scale-110"><FoodIcons.Burger className="w-12 h-12" /></div>
+      <div className="absolute top-[28%] left-[38%] -rotate-[30deg] scale-150"><FoodIcons.IceCream className="w-12 h-12" /></div>
+      <div className="absolute bottom-[38%] right-[38%] rotate-[25deg] scale-125"><FoodIcons.Wing className="w-12 h-12" /></div>
+      <div className="absolute top-[75%] left-[55%] rotate-[-15deg] scale-110"><FoodIcons.Sandwich className="w-10 h-10 opacity-50" /></div>
+      <div className="absolute top-[8%] right-[40%] rotate-[10deg] scale-125"><FoodIcons.Soda className="w-10 h-10 opacity-50" /></div>
+    </>
+  ),
+  report: (
+    <>
+      <div className="absolute top-[4%] right-[12%] rotate-[-18deg] scale-150"><FoodIcons.IceCream className="w-12 h-12" /></div>
+      <div className="absolute top-[22%] left-[6%] rotate-[30deg] scale-125"><FoodIcons.Wing className="w-12 h-12" /></div>
+      <div className="absolute top-[48%] right-[8%] rotate-[-35deg] scale-110"><FoodIcons.Coffee className="w-12 h-12" /></div>
+      <div className="absolute top-[58%] left-[10%] rotate-[22deg] scale-150"><FoodIcons.Fries className="w-12 h-12" /></div>
+      <div className="absolute bottom-[8%] right-[22%] rotate-[-12deg] scale-125"><FoodIcons.Burger className="w-12 h-12" /></div>
+      <div className="absolute bottom-[18%] left-[15%] rotate-[42deg] scale-110"><FoodIcons.Soda className="w-12 h-12" /></div>
+      <div className="absolute top-[32%] right-[42%] rotate-[-28deg] scale-150"><FoodIcons.Pizza className="w-12 h-12" /></div>
+      <div className="absolute bottom-[42%] left-[42%] rotate-[18deg] scale-125"><FoodIcons.Sandwich className="w-12 h-12" /></div>
+      <div className="absolute top-[65%] right-[30%] rotate-[38deg] scale-110"><FoodIcons.IceCream className="w-10 h-10 opacity-50" /></div>
+      <div className="absolute top-[14%] left-[50%] rotate-[-22deg] scale-125"><FoodIcons.Wing className="w-10 h-10 opacity-50" /></div>
+    </>
+  ),
+};
+
+export const BackgroundPatterns = ({ variant = 'home' }: { variant?: BackgroundVariant }) => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.12]">
+    {BACKGROUND_LAYOUTS[variant]}
   </div>
 );
 
@@ -129,4 +181,69 @@ export const Input = ({ label, placeholder, type = 'text', value, onChange }: {
     />
   </div>
 );
+
+export const Dialog = ({ 
+  open, 
+  onClose, 
+  title, 
+  content, 
+  onConfirm, 
+  onCancel,
+  confirmText = '确认',
+  cancelText = '取消'
+}: { 
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  content?: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+}) => {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+      <div 
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="relative bg-white food-border rounded-[32px] p-6 max-w-sm w-full food-shadow-lg animate-scale-in">
+        {title && (
+          <h3 className="text-xl font-black text-food-ink mb-4 text-center">
+            {title}
+          </h3>
+        )}
+        {content && (
+          <p className="text-food-ink/70 mb-6 text-center font-bold">
+            {content}
+          </p>
+        )}
+        <div className="flex gap-3">
+          <Button 
+            variant="secondary" 
+            onClick={() => {
+              onCancel?.();
+              onClose();
+            }}
+            className="flex-1"
+          >
+            {cancelText}
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={() => {
+              onConfirm?.();
+              onClose();
+            }}
+            className="flex-1"
+          >
+            {confirmText}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 

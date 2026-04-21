@@ -59,7 +59,9 @@ export const reviewAPI = {
     files.forEach((file) => {
       formData.append('photos', file);
     });
-    return http.post(`/reviews/${reviewId}/photos`, formData);
+    return http.post(`/reviews/${reviewId}/photos`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
   },
   
   // 获取餐厅的评价

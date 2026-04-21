@@ -53,13 +53,13 @@ export const Report = () => {
 
   return (
     <div className="min-h-screen bg-food-bg flex flex-col relative overflow-hidden">
-      <BackgroundPatterns />
+      <BackgroundPatterns variant="report" />
       
-      <header className="p-6 flex items-center gap-4 bg-food-tomato sticky top-0 z-20 food-border border-x-0 border-t-0 shadow-lg">
+      <header className="p-4 flex items-center gap-4 bg-food-tomato sticky top-0 z-20 food-border border-x-0 border-t-0 shadow-lg">
         <Button variant="secondary" onClick={() => navigate('/')} className="p-2 food-shadow-sm bg-white">
           <FoodIcons.Back className="w-6 h-6" />
         </Button>
-        <h1 className="text-2xl font-black text-white drop-shadow-sm">发现新美味</h1>
+        <h1 className="text-2xl font-black text-white drop-shadow-sm">上报</h1>
       </header>
 
       <main className="p-6 flex flex-col gap-6 z-10">
@@ -70,34 +70,34 @@ export const Report = () => {
           <Card className="bg-white flex flex-col gap-8 p-8 shadow-2xl border-b-[12px] border-food-bread/10">
             <div className="flex items-center gap-3 mb-2 bg-food-cheese/10 p-4 rounded-2xl food-border border-dashed">
               <FoodIcons.Chef className="w-8 h-8 text-food-tomato animate-pulse" />
-              <h2 className="font-black text-2xl text-food-ink">大厨的秘密清单</h2>
+              <h2 className="font-black text-2xl text-food-ink">写低间嘢系边</h2>
             </div>
 
             <Input 
               label="餐厅名称" 
-              placeholder="这家店叫什么？" 
+              // placeholder="这家店叫什么？" 
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
             
             <Input 
               label="餐厅地址" 
-              placeholder="在哪里可以吃到？" 
+              // placeholder="在哪里可以吃到？" 
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
             />
 
             <Input 
               label="推荐菜" 
-              placeholder="必点的是哪道菜？" 
+              // placeholder="必点的是哪道菜？" 
               value={form.recommendedDishes}
               onChange={(e) => setForm({ ...form, recommendedDishes: e.target.value })}
             />
 
             <div className="flex flex-col gap-2">
-              <label className="font-bold text-sm ml-2">吃货评价</label>
+              <label className="font-bold text-sm ml-2">评价</label>
               <textarea
-                placeholder="简单描述一下这家店吧..."
+                placeholder="选填"
                 rows={3}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -118,7 +118,7 @@ export const Report = () => {
               className="mt-4 py-4 text-xl"
               disabled={isSubmitting}
             >
-              {isSubmitting ? '出餐中...' : '确认出餐！'}
+              {isSubmitting ? '提交中...' : '确认'}
             </Button>
           </Card>
         </motion.div>

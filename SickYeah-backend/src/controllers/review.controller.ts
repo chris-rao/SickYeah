@@ -78,6 +78,17 @@ export const uploadReviewPhotos = async (req: AuthRequest, res: Response) => {
 
     const photos = await Promise.all(photoPromises);
 
+    // 若餐厅尚无封面图，将第一张上传的照片设为餐厅封面
+    const restaurant = await prisma.restaurant.findFirst({
+      where: { id: review.restaurantId }
+    });
+    if (restaurant && !restaurant.image && photos.length > 0) {
+      await prisma.restaurant.update({
+        where: { id: review.restaurantId },
+        data: { image: photos[0].photoUrl }
+      });
+    }
+
     res.status(201).json({ photos });
   } catch (error) {
     console.error('上传评价照片错误:', error);

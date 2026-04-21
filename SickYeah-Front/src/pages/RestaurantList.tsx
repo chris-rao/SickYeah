@@ -16,6 +16,14 @@ interface Restaurant {
   rating?: 'good' | 'bad';
 }
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
+
+const getImageUrl = (path?: string) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  return `${API_BASE}${path}`;
+};
+
 export const RestaurantList = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,22 +72,22 @@ export const RestaurantList = () => {
 
   return (
     <div className="min-h-screen bg-food-bg flex flex-col relative overflow-hidden">
-      <BackgroundPatterns />
+      <BackgroundPatterns variant="list" />
       
-      <header className="p-6 flex items-center gap-4 bg-food-cheese sticky top-0 z-20 food-border border-x-0 border-t-0 shadow-lg">
+      <header className="p-4 flex items-center gap-4 bg-food-cheese sticky top-0 z-20 food-border border-x-0 border-t-0 shadow-lg">
         <Button variant="secondary" onClick={() => navigate('/')} className="p-2 food-shadow-sm bg-white">
           <FoodIcons.Back className="w-6 h-6" />
         </Button>
         <h1 className="text-2xl font-black text-food-ink drop-shadow-sm">
-          {activeTab === 'to-eat' ? '待食清单' : '美食足迹'}
+          Check List
         </h1>
       </header>
 
       <div className="p-6 z-10">
-        <div className="bg-white p-1.5 rounded-full food-border mb-8 shadow-inner">
+        <div className="bg-white p-1.5 rounded-full mb-8 shadow-inner">
           <CapsuleTabs activeKey={activeTab} onChange={handleTabChange}>
-            <CapsuleTabs.Tab title="待食 🍟" key="to-eat" />
-            <CapsuleTabs.Tab title="已食 🍗" key="eaten" />
+            <CapsuleTabs.Tab title="未check 🍟" key="to-eat" />
+            <CapsuleTabs.Tab title="check过 🍗" key="eaten" />
           </CapsuleTabs>
         </div>
 
@@ -97,14 +105,14 @@ export const RestaurantList = () => {
               className="py-1 px-4 text-sm whitespace-nowrap flex items-center gap-1"
               onClick={() => setFilter('good')}
             >
-              <FoodIcons.Good className="w-4 h-4" /> 好吃
+              <FoodIcons.Good className="w-4 h-4" /> 两条裤
             </Button>
             <Button 
               variant={filter === 'bad' ? 'primary' : 'secondary'} 
               className="py-1 px-4 text-sm whitespace-nowrap flex items-center gap-1"
               onClick={() => setFilter('bad')}
             >
-              <FoodIcons.Bad className="w-4 h-4" /> 避雷
+              <FoodIcons.Bad className="w-4 h-4" /> 把撚
             </Button>
           </div>
         )}
@@ -132,7 +140,7 @@ export const RestaurantList = () => {
                   >
                     <div className="w-24 h-24 rounded-3xl food-border bg-food-paper flex items-center justify-center shrink-0 shadow-inner">
                       {r.image ? (
-                        <img src={r.image} alt={r.name} className="w-full h-full object-cover rounded-3xl" />
+                        <img src={getImageUrl(r.image) ?? undefined} alt={r.name} className="w-full h-full object-cover rounded-3xl" />
                       ) : (
                         <div className="bg-food-cheese/20 w-full h-full flex items-center justify-center rounded-3xl">
                           <FoodIcons.Burger className="w-12 h-12 opacity-40" />
