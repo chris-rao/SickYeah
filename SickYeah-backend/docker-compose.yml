@@ -11,8 +11,7 @@ services:
     environment:
       NODE_ENV: production
       TZ: Asia/Shanghai
-      DATABASE_URL: file:./dev.db
+      # DATABASE_URL 从 .env 文件读取，格式：mysql://用户名:密码@主机:3306/数据库名
     volumes:
-      - ./prisma/dev.db:/app/prisma/dev.db
       - ./uploads:/app/uploads
     restart: unless-stopped
