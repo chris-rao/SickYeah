@@ -3,7 +3,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import restaurantRoutes from './routes/restaurant.routes';
-import reviewRoutes from './routes/review.routes';
 
 dotenv.config();
 
@@ -39,7 +38,6 @@ app.get('/health', (req, res) => {
 // API 路由
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
-app.use('/api/reviews', reviewRoutes);
 
 // 404 处理
 app.use((req, res) => {

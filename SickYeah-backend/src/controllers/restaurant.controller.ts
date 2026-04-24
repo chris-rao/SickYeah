@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import prisma from '../utils/prisma';
-import { getSignedUrl } from '../utils/cloudStorage';
+import { uploadBuffer, getSignedUrl } from '../utils/cloudStorage';
 
 async function resolveImageUrl(url: string | null | undefined): Promise<string | null> {
   if (!url) return url ?? null;
@@ -11,7 +11,7 @@ async function resolveImageUrl(url: string | null | undefined): Promise<string |
 export const getRestaurants = async (req: AuthRequest, res: Response) => {
   try {
     const { status, rating } = req.query;
-    
+
     const where: any = {
       userId: req.userId
     };
@@ -30,28 +30,18 @@ export const getRestaurants = async (req: AuthRequest, res: Response) => {
         createdAt: 'desc'
       },
       include: {
-        reviews: {
-          include: {
-            photos: true
-          }
-        }
+        photos: true
       }
     });
 
-    // 将餐厅封面图和评价照片中的 cloudID 转换为签名 HTTP URL
     const restaurantsWithUrls = await Promise.all(
       restaurants.map(async (r) => ({
         ...r,
         image: await resolveImageUrl(r.image),
-        reviews: await Promise.all(
-          r.reviews.map(async (review) => ({
-            ...review,
-            photos: await Promise.all(
-              review.photos.map(async (photo) => ({
-                ...photo,
-                photoUrl: await resolveImageUrl(photo.photoUrl) ?? photo.photoUrl,
-              }))
-            ),
+        photos: await Promise.all(
+          r.photos.map(async (photo) => ({
+            ...photo,
+            photoUrl: await resolveImageUrl(photo.photoUrl) ?? photo.photoUrl,
           }))
         ),
       }))
@@ -77,17 +67,7 @@ export const getRestaurantById = async (req: AuthRequest, res: Response) => {
         userId: req.userId
       },
       include: {
-        reviews: {
-          include: {
-            photos: true,
-            user: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true
-              }
-            }
-          },
+        photos: {
           orderBy: {
             createdAt: 'desc'
           }
@@ -99,13 +79,11 @@ export const getRestaurantById = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: '餐厅未找到' });
     }
 
-    const latestReview = restaurant.reviews[0];
-    const { description, reviews, ...restaurantWithoutDescriptionAndReviews } = restaurant;
+    const { description, ...restaurantWithoutDescription } = restaurant;
 
-    // 将封面图和最新评价照片的 cloudID 转换为签名 HTTP URL
-    const resolvedImage = await resolveImageUrl(restaurantWithoutDescriptionAndReviews.image);
+    const resolvedImage = await resolveImageUrl(restaurantWithoutDescription.image);
     const resolvedPhotos = await Promise.all(
-      (latestReview?.photos || []).map(async (photo) => ({
+      restaurantWithoutDescription.photos.map(async (photo) => ({
         ...photo,
         photoUrl: await resolveImageUrl(photo.photoUrl) ?? photo.photoUrl,
       }))
@@ -116,10 +94,9 @@ export const getRestaurantById = async (req: AuthRequest, res: Response) => {
     res.setHeader('Expires', '0');
     res.json({
       data: {
-        ...restaurantWithoutDescriptionAndReviews,
+        ...restaurantWithoutDescription,
         image: resolvedImage,
         photos: resolvedPhotos,
-        comment: latestReview?.comment || ''
       }
     });
   } catch (error) {
@@ -192,7 +169,7 @@ export const updateRestaurant = async (req: AuthRequest, res: Response) => {
 export const updateRestaurantStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status, rating } = req.body;
+    const { status, rating, comment } = req.body;
 
     if (!status) {
       return res.status(400).json({ error: '状态是必填项' });
@@ -213,13 +190,67 @@ export const updateRestaurantStatus = async (req: AuthRequest, res: Response) =>
       where: { id },
       data: {
         status,
-        ...(rating !== undefined && { rating })
+        ...(rating !== undefined && { rating }),
+        ...(comment !== undefined && { comment })
       }
     });
 
     res.json({ restaurant });
   } catch (error) {
     console.error('更新餐厅状态错误:', error);
+    res.status(500).json({ error: '服务器错误' });
+  }
+};
+
+export const uploadRestaurantPhotos = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: '请上传至少一张照片' });
+    }
+
+    const restaurant = await prisma.restaurant.findFirst({
+      where: {
+        id,
+        userId: req.userId
+      }
+    });
+
+    if (!restaurant) {
+      return res.status(404).json({ error: '餐厅未找到' });
+    }
+
+    const photoPromises = files.map(async (file) => {
+      const cloudId = await uploadBuffer(file.buffer, file.originalname);
+      return prisma.restaurantPhoto.create({
+        data: {
+          restaurantId: id,
+          photoUrl: cloudId,
+        },
+      });
+    });
+
+    const photos = await Promise.all(photoPromises);
+
+    if (!restaurant.image && photos.length > 0) {
+      await prisma.restaurant.update({
+        where: { id },
+        data: { image: photos[0].photoUrl }
+      });
+    }
+
+    const photosWithUrl = await Promise.all(
+      photos.map(async (photo) => ({
+        ...photo,
+        photoUrl: await getSignedUrl(photo.photoUrl),
+      }))
+    );
+
+    res.status(201).json({ photos: photosWithUrl });
+  } catch (error) {
+    console.error('上传餐厅照片错误:', error);
     res.status(500).json({ error: '服务器错误' });
   }
 };

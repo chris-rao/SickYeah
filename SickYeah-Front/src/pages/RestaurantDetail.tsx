@@ -143,30 +143,22 @@ export const RestaurantDetail = () => {
     }
 
     try {
-      // 1. 创建评价
-      const reviewResponse = await reviewAPI.create({
-        restaurantId: restaurant!.id,
+      // 1. 更新餐厅状态（包含评分和评论）
+      await restaurantAPI.updateStatus(restaurant!.id, {
+        status: 'eaten',
         rating: selectedRating,
-        comment: reviewComment,
+        comment: reviewComment || undefined,
       });
-
-      const reviewId = reviewResponse.data.id;
 
       // 2. 上传照片（如果有）
       if (uploadedPhotos.length > 0) {
         try {
-          await reviewAPI.uploadPhotos(reviewId, uploadedPhotos);
+          await reviewAPI.uploadPhotos(restaurant!.id, uploadedPhotos);
         } catch (photoError) {
           console.error('上传照片失败:', photoError);
           // 照片上传失败不影响评价提交
         }
       }
-
-      // 3. 更新餐厅状态
-      await restaurantAPI.updateStatus(restaurant!.id, {
-        status: 'eaten',
-        rating: selectedRating,
-      });
 
       Toast.show({ content: '打卡成功！', icon: 'success' });
       navigate('/restaurants/eaten');

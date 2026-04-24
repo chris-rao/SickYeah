@@ -37,7 +37,10 @@ export const restaurantAPI = {
   update: (id: string, data: any) => http.put(`/restaurants/${id}`, data),
   
   // 更新餐厅状态
-  updateStatus: (id: string, data: { status: string; rating?: string }) =>
+  updateStatus: (
+    id: string,
+    data: { status: string; rating?: 'good' | 'bad'; comment?: string }
+  ) =>
     http.patch(`/restaurants/${id}/status`, data),
   
   // 删除餐厅
@@ -46,20 +49,13 @@ export const restaurantAPI = {
 
 // 评价 API
 export const reviewAPI = {
-  // 创建评价
-  create: (data: {
-    restaurantId: string;
-    rating: 'good' | 'bad';
-    comment?: string;
-  }) => http.post('/reviews', data),
-  
-  // 上传评价照片
-  uploadPhotos: (reviewId: string, files: File[]) => {
+  // 上传餐厅照片
+  uploadPhotos: (restaurantId: string, files: File[]) => {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('photos', file);
     });
-    return http.post(`/reviews/${reviewId}/photos`, formData, {
+    return http.post(`/restaurants/${restaurantId}/photos`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
