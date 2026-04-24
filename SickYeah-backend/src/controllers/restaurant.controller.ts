@@ -74,10 +74,19 @@ export const getRestaurantById = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: '餐厅未找到' });
     }
 
+    const latestReview = restaurant.reviews[0];
+    const { description, reviews, ...restaurantWithoutDescriptionAndReviews } = restaurant;
+
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    res.json({ data: restaurant });
+    res.json({
+      data: {
+        ...restaurantWithoutDescriptionAndReviews,
+        photos: latestReview?.photos || [],
+        comment: latestReview?.comment || ''
+      }
+    });
   } catch (error) {
     console.error('获取餐厅详情错误:', error);
     res.status(500).json({ error: '服务器错误' });

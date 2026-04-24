@@ -4,6 +4,10 @@ import { Card, Button, Toast, cn, BackgroundPatterns } from '@/components/ui';
 import { FoodIcons } from '@/components/icons';
 import { restaurantAPI, reviewAPI } from '@/api';
 import { motion, AnimatePresence } from 'motion/react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string || 'http://localhost:8080/api').replace(/\/api\/?$/, '');
 
@@ -15,6 +19,13 @@ const getImageUrl = (path?: string) => {
 
 type ReviewStep = 'rating' | 'comment' | 'photo' | null;
 
+interface RestaurantPhoto {
+  id: string;
+  reviewId: string;
+  photoUrl: string;
+  createdAt: string;
+}
+
 interface Restaurant {
   id: string;
   name: string;
@@ -24,6 +35,8 @@ interface Restaurant {
   image?: string;
   status: 'to-eat' | 'eaten';
   rating?: 'good' | 'bad';
+  photos?: RestaurantPhoto[];
+  comment?: string;
 }
 
 export const RestaurantDetail = () => {
@@ -88,6 +101,15 @@ export const RestaurantDetail = () => {
   }
 
   const imageUrl = getImageUrl(restaurant.image);
+
+  // 构建轮播图片列表：优先用 photos，没有则用 image
+  const carouselImages: string[] = (() => {
+    if (restaurant.photos && restaurant.photos.length > 0) {
+      return restaurant.photos.map(p => getImageUrl(p.photoUrl)).filter(Boolean) as string[];
+    }
+    if (imageUrl) return [imageUrl];
+    return [];
+  })();
 
   const handleEatenClick = () => {
     setReviewStep('rating');
@@ -185,25 +207,27 @@ export const RestaurantDetail = () => {
         {/* Carousel - 仅已食状态显示 */}
         {restaurant.status === 'eaten' && (
           <div className="relative w-full aspect-square max-h-[38vh] bg-food-paper food-border border-x-0 border-t-0 overflow-hidden">
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt={restaurant.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div className={cn(
-              "fallback-icon absolute inset-0 items-center justify-center bg-food-cheese/10",
-              imageUrl ? "hidden" : "flex"
-            )}>
-              <FoodIcons.Burger className="w-24 h-24 opacity-30" />
-            </div>
+            {carouselImages.length > 0 ? (
+              <Swiper
+                modules={[Pagination]}
+                pagination={{ clickable: true }}
+                className="restaurant-carousel w-full h-full"
+              >
+                {carouselImages.map((src, idx) => (
+                  <SwiperSlide key={idx}>
+                    <img
+                      src={src}
+                      alt={`${restaurant.name} 照片 ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-food-cheese/10">
+                <FoodIcons.Burger className="w-24 h-24 opacity-30" />
+              </div>
+            )}
           </div>
         )}
 
@@ -223,7 +247,7 @@ export const RestaurantDetail = () => {
             </div>
 
             {/* Recommended Dishes */}
-            {restaurant.recommendedDishes && (
+            {/* {restaurant.recommendedDishes && (
               <div className="bg-food-cheese/10 p-4 rounded-2xl food-border border-dashed">
                 <div className="flex items-center gap-2 mb-2 text-food-tomato font-black">
                   <FoodIcons.Chef className="w-5 h-5" />
@@ -231,17 +255,17 @@ export const RestaurantDetail = () => {
                 </div>
                 <p className="text-food-ink font-bold">{restaurant.recommendedDishes}</p>
               </div>
-            )}
+            )} */}
 
-            {/* Description */}
-            {restaurant.description && (
+            {/* comment */}
+            {restaurant.comment && (
               <div className="bg-food-paper/30 p-4 rounded-2xl food-border border-none">
                 <div className="flex items-center gap-2 mb-2 text-food-ink/80 font-black">
                   <FoodIcons.Good className="w-5 h-5" />
                   <h3>评价</h3>
                 </div>
                 <p className="text-food-ink/80 italic leading-relaxed">
-                  “{restaurant.description}”
+                  “{restaurant.comment}”
                 </p>
               </div>
             )}
