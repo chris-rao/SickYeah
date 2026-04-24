@@ -1,6 +1,12 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import prisma from '../utils/prisma';
+import { getSignedUrl } from '../utils/cloudStorage';
+
+async function resolveImageUrl(url: string | null | undefined): Promise<string | null> {
+  if (!url) return url ?? null;
+  return url.startsWith('cloud://') ? getSignedUrl(url) : url;
+}
 
 export const getRestaurants = async (req: AuthRequest, res: Response) => {
   try {
@@ -32,10 +38,29 @@ export const getRestaurants = async (req: AuthRequest, res: Response) => {
       }
     });
 
+    // 将餐厅封面图和评价照片中的 cloudID 转换为签名 HTTP URL
+    const restaurantsWithUrls = await Promise.all(
+      restaurants.map(async (r) => ({
+        ...r,
+        image: await resolveImageUrl(r.image),
+        reviews: await Promise.all(
+          r.reviews.map(async (review) => ({
+            ...review,
+            photos: await Promise.all(
+              review.photos.map(async (photo) => ({
+                ...photo,
+                photoUrl: await resolveImageUrl(photo.photoUrl) ?? photo.photoUrl,
+              }))
+            ),
+          }))
+        ),
+      }))
+    );
+
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    res.json({ data: restaurants });
+    res.json({ data: restaurantsWithUrls });
   } catch (error) {
     console.error('获取餐厅列表错误:', error);
     res.status(500).json({ error: '服务器错误' });
@@ -77,13 +102,23 @@ export const getRestaurantById = async (req: AuthRequest, res: Response) => {
     const latestReview = restaurant.reviews[0];
     const { description, reviews, ...restaurantWithoutDescriptionAndReviews } = restaurant;
 
+    // 将封面图和最新评价照片的 cloudID 转换为签名 HTTP URL
+    const resolvedImage = await resolveImageUrl(restaurantWithoutDescriptionAndReviews.image);
+    const resolvedPhotos = await Promise.all(
+      (latestReview?.photos || []).map(async (photo) => ({
+        ...photo,
+        photoUrl: await resolveImageUrl(photo.photoUrl) ?? photo.photoUrl,
+      }))
+    );
+
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
     res.json({
       data: {
         ...restaurantWithoutDescriptionAndReviews,
-        photos: latestReview?.photos || [],
+        image: resolvedImage,
+        photos: resolvedPhotos,
         comment: latestReview?.comment || ''
       }
     });
