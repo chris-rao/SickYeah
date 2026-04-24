@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import prisma from '../utils/prisma';
+import { uploadBuffer, getSignedUrl } from '../utils/cloudStorage';
 
 export const createReview = async (req: AuthRequest, res: Response) => {
   try {
@@ -67,14 +68,16 @@ export const uploadReviewPhotos = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: '评价未找到' });
     }
 
-    const photoPromises = files.map(file => 
-      prisma.reviewPhoto.create({
+    // 并发上传到对象存储，存储返回的永久 cloudID
+    const photoPromises = files.map(async (file) => {
+      const cloudId = await uploadBuffer(file.buffer, file.originalname);
+      return prisma.reviewPhoto.create({
         data: {
           reviewId,
-          photoUrl: `/uploads/${file.filename}`
-        }
-      })
-    );
+          photoUrl: cloudId,
+        },
+      });
+    });
 
     const photos = await Promise.all(photoPromises);
 
@@ -89,7 +92,15 @@ export const uploadReviewPhotos = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    res.status(201).json({ photos });
+    // 返回前将 cloudID 转换为签名 HTTP URL
+    const photosWithUrl = await Promise.all(
+      photos.map(async (photo) => ({
+        ...photo,
+        photoUrl: await getSignedUrl(photo.photoUrl),
+      }))
+    );
+
+    res.status(201).json({ photos: photosWithUrl });
   } catch (error) {
     console.error('上传评价照片错误:', error);
     res.status(500).json({ error: '服务器错误' });
@@ -119,7 +130,22 @@ export const getRestaurantReviews = async (req: AuthRequest, res: Response) => {
       }
     });
 
-    res.json({ reviews });
+    // 将每条评价中的照片 cloudID 批量转换为签名 HTTP URL
+    const reviewsWithUrls = await Promise.all(
+      reviews.map(async (review) => ({
+        ...review,
+        photos: await Promise.all(
+          review.photos.map(async (photo) => ({
+            ...photo,
+            photoUrl: photo.photoUrl.startsWith('cloud://')
+              ? await getSignedUrl(photo.photoUrl)
+              : photo.photoUrl, // 兼容迁移前的旧本地路径数据
+          }))
+        ),
+      }))
+    );
+
+    res.json({ reviews: reviewsWithUrls });
   } catch (error) {
     console.error('获取餐厅评价错误:', error);
     res.status(500).json({ error: '服务器错误' });

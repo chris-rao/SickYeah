@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
 import authRoutes from './routes/auth.routes';
 import restaurantRoutes from './routes/restaurant.routes';
 import reviewRoutes from './routes/review.routes';
@@ -31,9 +30,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// 静态文件服务 - 提供上传的图片
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // 健康检查
 app.get('/health', (req, res) => {
